@@ -1,8 +1,10 @@
 /*
-    10-5-09
+    9-1-09
     Aaron Weiss
     
-	Geiger Counter Random Number Generator
+	Geiger Counter
+	
+	v13: displays counts per second, every second
 	
 	Internal 8MHz: lfuse = 0xE2, hfuse = 0xDF
     
@@ -23,12 +25,7 @@
 #define STATUS_LED 5
 
 //uint16_t global_clock;
-volatile uint16_t i=0;
-volatile long int j=0;
-volatile long int jlast;
-volatile uint8_t bit;
-uint8_t a, b, c, d, e, f, g, h;
-volatile uint8_t byte[8];
+volatile long i=0;
 
 ///============Initialize Prototypes=====================///////////////////////
 void ioinit(void);      // initializes IO
@@ -38,23 +35,17 @@ static FILE mystdout = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
 void delay_ms(uint16_t x); // general purpose delay
 /////===================================================////////////////////////
 
-ISR (SIG_INTERRUPT0) 
-{	
-	
-	cli();
-	cbi(PORTC, STATUS_LED);
-	delay_ms(10);
+ISR (INT0_vect) 
+{		
 	i++;
+	cbi(PORTC, STATUS_LED);
+}
 
-	if(jlast < j) bit = 0;
-	if(jlast > j) bit = 1;
-	
-	printf("%d", bit);
-	
-	jlast = j;
-	j = 0;
-	sei();
-	
+ISR(TIMER1_OVF_vect)
+{
+	TCNT1 = 34000;	//(256/8MHz)*(65536bits-34000)~=1.009s
+	printf("counts per second: %ld  \r", i);
+	i=0;
 }
 
 //=========MAIN================/////////////////////////////////////////////////
@@ -63,22 +54,14 @@ int main(void)
 	ioinit(); //Setup IO pins and defaults
 	
 	delay_ms(1200); //wait to settle
-	sei();
 	
 	while(1)
 	{	
 		sbi(PORTC, STATUS_LED);
 		delay_ms(30);
-		j++;
 	}
 	
 	cli();
-	
-	//for(int z = 0; z < 8; z++)
-	//{	
-	//	printf("%d", byte[z]);
-	//}
-	//printf("    \n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -90,21 +73,29 @@ void ioinit (void)
     DDRB = 0b11101111; //PB4 = MISO 
     DDRC = 0b00110001; //Output on PORTC0, PORTC4 (SDA), PORTC5 (SCL), all others are inputs
     DDRD = 0b11110010; //PORTD (RX on PD0), input on PD2
-	//PORTD = 0b00000100; //enable pullup on PD2
-
+	
     //USART Baud rate: 9600
     UBRR0H = MYUBRR >> 8;
     UBRR0L = MYUBRR;
     UCSR0B = (1<<RXEN0)|(1<<TXEN0);    
 	
-	EICRA=(1<<ISC01); // falling edge 
-	EIMSK = (1<<INT0);
-	
 	stdout = &mystdout; //Required for printf init
 	
-	printf("\r           \r");
+	//pin change interrupt on INT0
+	EICRA = (1<<ISC01);//falling edge generates interrupt
+	EIMSK = (1<<INT0);
 	
-	sei();
+	// Setting Timer 1:
+	// normal mode
+	TCCR1A = 0x00;
+	// Set to clk/256 
+	TCCR1B |= (1<<CS12);
+	//enable overflow interrupt
+	TIMSK1 |= (1<<TOIE1);
+	//load timer with a value to optimize for 1 second, (256/8MHz)*(65536bits-34000)~=1.009s
+	TCNT1 = 34000;
+	
+	sei(); //turn on global interrupts
 }
 
 static int uart_putchar(char c, FILE *stream)

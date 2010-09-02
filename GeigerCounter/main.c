@@ -2,11 +2,11 @@
     9-1-09
     Aaron Weiss
     
-	Geiger Counter
+    Geiger Counter
 	
-	v13: displays counts per second, every second
+    v13: displays counts per second, every second
 	
-	Internal 8MHz: lfuse = 0xE2, hfuse = 0xDF
+    Internal 8MHz: lfuse = 0xE2, hfuse = 0xDF
     
 */
 #include <stdlib.h>
@@ -24,7 +24,6 @@
 
 #define STATUS_LED 5
 
-//uint16_t global_clock;
 volatile long i=0;
 
 ///============Initialize Prototypes=====================///////////////////////
@@ -79,23 +78,23 @@ void ioinit (void)
     UBRR0L = MYUBRR;
     UCSR0B = (1<<RXEN0)|(1<<TXEN0);    
 	
-	stdout = &mystdout; //Required for printf init
+    stdout = &mystdout; //Required for printf init
 	
-	//pin change interrupt on INT0
-	EICRA = (1<<ISC01);//falling edge generates interrupt
-	EIMSK = (1<<INT0);
+    //pin change interrupt on INT0
+    EICRA = (1<<ISC01);//falling edge generates interrupt
+    EIMSK = (1<<INT0);
 	
-	// Setting Timer 1:
-	// normal mode
-	TCCR1A = 0x00;
-	// Set to clk/256 
-	TCCR1B |= (1<<CS12);
-	//enable overflow interrupt
-	TIMSK1 |= (1<<TOIE1);
-	//load timer with a value to optimize for 1 second, (256/8MHz)*(65536bits-34000)~=1.009s
-	TCNT1 = 34000;
+    // Setting Timer 1:
+    // normal mode
+    TCCR1A = 0x00;
+    // Set to clk/256 
+    TCCR1B |= (1<<CS12);
+    //enable overflow interrupt
+    TIMSK1 |= (1<<TOIE1);
+    //load timer with a value to optimize for 1 second, (256/8MHz)*(65536bits-34000)~=1.009s
+    TCNT1 = 34000;
 	
-	sei(); //turn on global interrupts
+    sei(); //turn on global interrupts
 }
 
 static int uart_putchar(char c, FILE *stream)

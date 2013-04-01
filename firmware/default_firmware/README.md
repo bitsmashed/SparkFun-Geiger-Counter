@@ -1,0 +1,1 @@
+This hex file is the production hex file that gets loaded onto every Geiger Counter that leaves SparkFun. The hex is generated from [v12](https://github.com/a1ronzo/SparkFun-Geiger-Counter/tree/v12) of the code.

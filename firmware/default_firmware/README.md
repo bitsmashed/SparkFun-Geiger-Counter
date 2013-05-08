@@ -1,1 +1,1 @@
-This hex file is the production hex file that gets loaded onto every Geiger Counter that leaves SparkFun. The hex is generated from [v12](https://github.com/a1ronzo/SparkFun-Geiger-Counter/tree/v12) of the code.
+The v12 hex file is the production hex file that gets loaded onto every Geiger Counter that leaves SparkFun. It outputs a random ascii bit upon each event. The hex is generated from [v12](https://github.com/a1ronzo/SparkFun-Geiger-Counter/tree/v12) of the code. The v13 hex outputs counts per second. 
